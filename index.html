@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMPACT-X Scoring Tool</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --ink: #0f0e0d;
+    --paper: #f7f4ef;
+    --accent: #c8412a;
+    --accent2: #2a6fc8;
+    --accent3: #2ab87a;
+    --muted: #8a8580;
+    --border: #ddd9d2;
+    --card: #ffffff;
+    --shadow: 0 2px 12px rgba(15,14,13,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 2.5rem 2rem 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.15;
+  }
+
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: -40px; left: 40%;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--accent2);
+    opacity: 0.12;
+  }
+
+  .header-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    line-height: 1.1;
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 span { color: var(--accent); font-style: italic; }
+
+  .header-sub {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 4rem;
+  }
+
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid var(--border);
+    overflow-x: auto;
+  }
+
+  .tab {
+    padding: 0.75rem 1.25rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    background: none;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    white-space: nowrap;
+    transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem;
+    font-weight: 400;
+    margin-bottom: 0.35rem;
+  }
+
+  .section-desc {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.75rem;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  .dimension-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+  }
+
+  .dim-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .dim-info { flex: 1; }
+
+  .dim-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+  }
+
+  .dim-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .dim-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.5;
+  }
+
+  .dim-score {
+    text-align: right;
+    min-width: 60px;
+  }
+
+  .score-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    line-height: 1;
+    color: var(--ink);
+  }
+
+  .score-max {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+
+  .slider-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+    box-shadow: 0 1px 4px rgba(200,65,42,0.3);
+    transition: transform 0.1s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+
+  .weight-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.2rem 0.4rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .results-panel {
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .results-panel::before {
+    content: '';
+    position: absolute;
+    top: -30px; right: -30px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.15;
+  }
+
+  .results-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .scores-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .score-block {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .score-block-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .score-block-value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    line-height: 1;
+  }
+
+  .score-block-value.human { color: var(--accent); }
+  .score-block-value.agent { color: var(--accent2); }
+  .score-block-value.combined { color: var(--accent3); }
+
+  .score-block-sub {
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 0.25rem;
+  }
+
+  .synergy-bar-wrap {
+    margin-top: 1rem;
+  }
+
+  .synergy-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .synergy-label span:last-child {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+  }
+
+  .bar-track {
+    height: 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+  }
+
+  .bar-fill.synergy-positive { background: var(--accent3); }
+  .bar-fill.synergy-neutral { background: var(--muted); }
+  .bar-fill.synergy-negative { background: var(--accent); }
+
+  .synergy-interpretation {
+    margin-top: 1rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255,255,255,0.05);
+    border-left: 3px solid var(--accent3);
+    border-radius: 0 6px 6px 0;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    font-style: italic;
+  }
+
+  .zone-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 1.75rem;
+  }
+
+  @media (min-width: 500px) {
+    .zone-selector { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .zone-option {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--card);
+  }
+
+  .zone-option:hover { border-color: var(--accent); }
+  .zone-option.selected { border-color: var(--accent); background: #fdf2f0; }
+
+  .zone-option-name {
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .zone-option-desc {
+    font-size: 0.72rem;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  .weights-note {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 0.5rem;
+  }
+
+  .agent-slider input[type="range"]::-webkit-slider-thumb {
+    background: var(--accent2);
+    box-shadow: 0 1px 4px rgba(42,111,200,0.3);
+  }
+
+  .combined-slider input[type="range"]::-webkit-slider-thumb {
+    background: var(--accent3);
+    box-shadow: 0 1px 4px rgba(42,184,122,0.3);
+  }
+
+  .dim-label.agent { color: var(--accent2); }
+  .dim-label.combined { color: var(--accent3); }
+
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    margin-top: 1rem;
+    transition: color 0.2s;
+  }
+  .github-link:hover { color: var(--paper); }
+
+  .reset-btn {
+    display: block;
+    margin: 1.5rem auto 0;
+    padding: 0.6rem 1.5rem;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .reset-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-label">Open Framework · v0.1</div>
+  <h1>IMPACT<span>-X</span></h1>
+  <p class="header-sub">Measure what actually wins games — not just hours at the crease.</p>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('human')">Layer 1 — Human</button>
+    <button class="tab" onclick="switchTab('agent')">Layer 2 — AI Agent</button>
+    <button class="tab" onclick="switchTab('combined')">Layer 3 — Combined</button>
+  </div>
+
+  <!-- LAYER 1: HUMAN -->
+  <div id="tab-human" class="tab-panel active">
+    <div class="section-title">Human IMPACT Score</div>
+    <p class="section-desc">Score the human's contribution across six dimensions. Each is weighted by role type. Scores reflect what the person did — not how long they were there.</p>
+
+    <div id="human-dims"></div>
+
+    <div class="results-panel">
+      <div class="results-title">Human IMPACT Score</div>
+      <div class="scores-grid">
+        <div class="score-block">
+          <div class="score-block-label">Composite Score</div>
+          <div class="score-block-value human" id="human-total">0.00</div>
+          <div class="score-block-sub">out of 10</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Strongest Dimension</div>
+          <div class="score-block-value human" id="human-best" style="font-size:1.2rem;margin-top:0.3rem">—</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Development Area</div>
+          <div class="score-block-value human" id="human-worst" style="font-size:1.2rem;margin-top:0.3rem">—</div>
+        </div>
+      </div>
+      <a class="github-link" href="https://github.com/impact-x/impact-x" target="_blank">
+        ↗ View full framework on GitHub
+      </a>
+    </div>
+    <button class="reset-btn" onclick="resetLayer('human')">Reset scores</button>
+  </div>
+
+  <!-- LAYER 2: AGENT -->
+  <div id="tab-agent" class="tab-panel">
+    <div class="section-title">Agent IMPACT Score</div>
+    <p class="section-desc">Score the AI agent or tool's contribution to this task. Not capability in isolation — but whether it made the human and the outcome better.</p>
+
+    <div id="agent-dims"></div>
+
+    <div class="results-panel">
+      <div class="results-title">Agent IMPACT Score</div>
+      <div class="scores-grid">
+        <div class="score-block">
+          <div class="score-block-label">Composite Score</div>
+          <div class="score-block-value agent" id="agent-total">0.00</div>
+          <div class="score-block-sub">out of 10</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Amplification Rate</div>
+          <div class="score-block-value agent" id="agent-har" style="font-size:1.5rem;margin-top:0.2rem">—</div>
+          <div class="score-block-sub">human × agent</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Signal</div>
+          <div class="score-block-value agent" id="agent-signal" style="font-size:1rem;margin-top:0.4rem;line-height:1.4">—</div>
+        </div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetLayer('agent')">Reset scores</button>
+  </div>
+
+  <!-- LAYER 3: COMBINED -->
+  <div id="tab-combined" class="tab-panel">
+    <div class="section-title">Combined IMPACT Score</div>
+    <p class="section-desc">The team score. Measures what the human-AI combination achieved together — including whether it created more value than either could alone.</p>
+
+    <div style="margin-bottom:1.5rem">
+      <div style="font-weight:600;font-size:0.9rem;margin-bottom:0.75rem">Work Zone Classification</div>
+      <div class="zone-selector" id="zone-selector">
+        <div class="zone-option selected" data-zone="hybrid" onclick="selectZone(this,'hybrid',0.6,0.4)">
+          <div class="zone-option-name">Hybrid</div>
+          <div class="zone-option-desc">Balanced human + AI throughout</div>
+        </div>
+        <div class="zone-option" data-zone="prep" onclick="selectZone(this,'prep',0.4,0.6)">
+          <div class="zone-option-name">Preparation-heavy</div>
+          <div class="zone-option-desc">AI-led research & analysis</div>
+        </div>
+        <div class="zone-option" data-zone="exec" onclick="selectZone(this,'exec',0.8,0.2)">
+          <div class="zone-option-name">Execution-heavy</div>
+          <div class="zone-option-desc">Human judgment is primary</div>
+        </div>
+        <div class="zone-option" data-zone="integ" onclick="selectZone(this,'integ',0.5,0.5)">
+          <div class="zone-option-name">Integration-heavy</div>
+          <div class="zone-option-desc">Synthesis & communication</div>
+        </div>
+      </div>
+      <p class="weights-note" id="weights-note">H-weight: 0.60 · A-weight: 0.40 (Hybrid task)</p>
+    </div>
+
+    <div id="combined-dims"></div>
+
+    <div class="results-panel">
+      <div class="results-title">Combined IMPACT Score</div>
+      <div class="scores-grid">
+        <div class="score-block">
+          <div class="score-block-label">Human</div>
+          <div class="score-block-value human" id="c-human">—</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Agent</div>
+          <div class="score-block-value agent" id="c-agent">—</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Combined</div>
+          <div class="score-block-value combined" id="c-combined">—</div>
+        </div>
+        <div class="score-block">
+          <div class="score-block-label">Synergy</div>
+          <div class="score-block-value combined" id="c-synergy">—</div>
+        </div>
+      </div>
+
+      <div class="synergy-bar-wrap">
+        <div class="synergy-label">
+          <span>Synergy Multiplier</span>
+          <span id="synergy-val">—</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill synergy-neutral" id="synergy-bar" style="width:0%"></div>
+        </div>
+        <div class="synergy-interpretation" id="synergy-text">
+          Score all three layers to see the Synergy Multiplier interpretation.
+        </div>
+      </div>
+    </div>
+    <button class="reset-btn" onclick="resetLayer('combined')">Reset scores</button>
+  </div>
+
+</div>
+
+<script>
+const humanDims = [
+  { id:'il', label:'I', name:'Intelligence Leverage', desc:'Did this person use the best available tools at the right moments?', weight:0.20 },
+  { id:'me', label:'M', name:'Multiplier Effect', desc:'Did their work make the team faster, cheaper, or more capable?', weight:0.20 },
+  { id:'pd', label:'P', name:'Problem Depth', desc:'Did they solve the stated task or the actual underlying problem?', weight:0.20 },
+  { id:'ac', label:'A', name:'Acceleration', desc:'How much faster did they move the project than baseline expectation?', weight:0.15 },
+  { id:'cv', label:'C', name:'Client & Stakeholder Value', desc:'Did it create real, measurable change for the person who needed it?', weight:0.15 },
+  { id:'tc', label:'T', name:'Team Contribution Index', desc:'Did this raise the floor or ceiling for the people around them?', weight:0.10 },
+];
+
+const agentDims = [
+  { id:'ar', label:'A1', name:'Accuracy Rate', desc:"Did the agent's output require significant human correction?", weight:0.20 },
+  { id:'tc2', label:'A2', name:'Task Compression', desc:'How much faster did the task complete with this agent vs. without?', weight:0.20 },
+  { id:'pf', label:'A3', name:'Problem Fit', desc:'Was this the right tool for this specific task?', weight:0.20 },
+  { id:'rc', label:'A4', name:'Reliability Consistency', desc:'Did the agent perform consistently across repeated similar tasks?', weight:0.15 },
+  { id:'har', label:'A5', name:'Human Amplification Rate', desc:'Did using this agent make the human measurably better — or create dependency?', weight:0.25 },
+];
+
+const combinedDims = [
+  { id:'oq', label:'OQ', name:'Output Quality', desc:'How would you rate the quality of the final combined output? (1-10)', weight:1.0 },
+];
+
+const state = {
+  human: Object.fromEntries(humanDims.map(d => [d.id, 5])),
+  agent: Object.fromEntries(agentDims.map(d => [d.id, 5])),
+  combined: { oq: 5 },
+  zone: { hw: 0.6, aw: 0.4, label: 'Hybrid task' }
+};
+
+function buildDims(container, dims, layer, accentClass) {
+  const el = document.getElementById(container);
+  el.innerHTML = '';
+  dims.forEach(d => {
+    const card = document.createElement('div');
+    card.className = 'dimension-card' + (layer === 'agent' ? ' agent-slider' : layer === 'combined' ? ' combined-slider' : '');
+    card.innerHTML = `
+      <div class="dim-header">
+        <div class="dim-info">
+          <div class="dim-label ${accentClass}">${d.label} — ${d.name}</div>
+          <div class="dim-desc">${d.desc}</div>
+        </div>
+        <div class="dim-score">
+          <div class="score-value" id="${layer}-${d.id}-val">${state[layer][d.id]}</div>
+          <div class="score-max">/10</div>
+        </div>
+      </div>
+      <div class="slider-row">
+        <input type="range" min="0" max="10" step="0.5" value="${state[layer][d.id]}"
+          oninput="updateScore('${layer}','${d.id}',this.value)"
+        />
+        <span class="weight-badge">w: ${d.weight}</span>
+      </div>
+    `;
+    el.appendChild(card);
+  });
+}
+
+function updateScore(layer, id, val) {
+  state[layer][id] = parseFloat(val);
+  document.getElementById(`${layer}-${id}-val`).textContent = val;
+  recalculate();
+}
+
+function recalculate() {
+  // Human
+  let humanScore = humanDims.reduce((s, d) => s + state.human[d.id] * d.weight, 0);
+  document.getElementById('human-total').textContent = humanScore.toFixed(2);
+  const humanScores = humanDims.map(d => ({ name: d.name, score: state.human[d.id] }));
+  const hBest = humanScores.reduce((a,b) => a.score>b.score?a:b);
+  const hWorst = humanScores.reduce((a,b) => a.score<b.score?a:b);
+  document.getElementById('human-best').textContent = hBest.name.split(' ')[0];
+  document.getElementById('human-worst').textContent = hWorst.name.split(' ')[0];
+
+  // Agent
+  let agentScore = agentDims.reduce((s, d) => s + state.agent[d.id] * d.weight, 0);
+  document.getElementById('agent-total').textContent = agentScore.toFixed(2);
+  const harVal = state.agent['har'];
+  let harSignal, harText;
+  if (harVal >= 7) { harSignal = '↑ Scale'; harText = 'Agent is amplifying the human. Expand usage.'; }
+  else if (harVal >= 4) { harSignal = '→ Monitor'; harText = 'Neutral effect. Evaluate cost vs. value.'; }
+  else { harSignal = '↓ Review'; harText = 'Agent may be creating dependency. Investigate.'; }
+  document.getElementById('agent-har').textContent = harVal.toFixed(1);
+  document.getElementById('agent-signal').textContent = harSignal;
+
+  // Combined
+  const hw = state.zone.hw;
+  const aw = state.zone.aw;
+  const baseScore = (humanScore * hw) + (agentScore * aw);
+  const oq = state.combined['oq'];
+  const expectedSum = humanScore + agentScore;
+  const synergyMultiplier = expectedSum > 0 ? (oq / (expectedSum / 2)) : 1;
+  const combinedScore = Math.min(10, baseScore * (0.7 + synergyMultiplier * 0.3));
+
+  document.getElementById('c-human').textContent = humanScore.toFixed(2);
+  document.getElementById('c-agent').textContent = agentScore.toFixed(2);
+  document.getElementById('c-combined').textContent = combinedScore.toFixed(2);
+  document.getElementById('c-synergy').textContent = synergyMultiplier.toFixed(2) + 'x';
+  document.getElementById('synergy-val').textContent = synergyMultiplier.toFixed(2) + 'x';
+
+  const barPct = Math.min(100, (synergyMultiplier / 2) * 100);
+  const bar = document.getElementById('synergy-bar');
+  bar.style.width = barPct + '%';
+  bar.className = 'bar-fill ' + (synergyMultiplier > 1.05 ? 'synergy-positive' : synergyMultiplier < 0.95 ? 'synergy-negative' : 'synergy-neutral');
+
+  let interpretation;
+  if (synergyMultiplier > 1.15) interpretation = 'Strong synergy. This human-AI combination created more value than either could have alone. This is the signal to understand, replicate, and scale.';
+  else if (synergyMultiplier > 1.05) interpretation = 'Positive synergy. The combination is working. Small optimisations to tool selection or preparation workflow could increase this further.';
+  else if (synergyMultiplier >= 0.95) interpretation = 'Additive combination. Performing as expected — no friction, no magic. Consider whether a different agent or different task allocation could push this above 1.0.';
+  else if (synergyMultiplier >= 0.85) interpretation = 'Mild friction detected. The combination is slightly underperforming expectations. Review task-tool fit and whether the human had adequate preparation time.';
+  else interpretation = 'Significant friction. This combination is producing less than expected. The agent may be creating more rework than it saves, or this task belongs in the Execution Zone where AI should play a minimal role.';
+  document.getElementById('synergy-text').textContent = interpretation;
+}
+
+function selectZone(el, zone, hw, aw) {
+  document.querySelectorAll('.zone-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.zone = { hw, aw };
+  const labels = { hybrid:'Hybrid task', prep:'Preparation-heavy task', exec:'Execution-heavy task', integ:'Integration-heavy task' };
+  document.getElementById('weights-note').textContent = `H-weight: ${hw.toFixed(2)} · A-weight: ${aw.toFixed(2)} (${labels[zone]})`;
+  recalculate();
+}
+
+function resetLayer(layer) {
+  const dims = layer === 'human' ? humanDims : layer === 'agent' ? agentDims : combinedDims;
+  dims.forEach(d => { state[layer][d.id] = 5; });
+  buildAll(); recalculate();
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    t.classList.toggle('active', ['human','agent','combined'][i] === tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+}
+
+function buildAll() {
+  buildDims('human-dims', humanDims, 'human', '');
+  buildDims('agent-dims', agentDims, 'agent', 'agent');
+  buildDims('combined-dims', combinedDims, 'combined', 'combined');
+}
+
+buildAll();
+recalculate();
+</script>
+</body>
+</html>
